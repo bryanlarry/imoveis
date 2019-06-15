@@ -32,7 +32,12 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(title: Text('Imóveis')),
       body: _buildBody(context),
       floatingActionButton: new FloatingActionButton(
-        onPressed: () => novoImovel.mainBottomSheet(context),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => novoImovel.build(context)),
+            );
+          },
         child: new Icon(Icons.add),
       ),
     );
@@ -70,11 +75,47 @@ class _MyHomePageState extends State<MyHomePage> {
         child: ListTile(
           title: Text(record.logradouro),
           trailing: Text(record.bairro),
-          onTap: () => print(record),
+            onTap: () => print(record),
+            onLongPress: () => _dialogExclusaoImovel(context, record.reference),
         ),
       ),
     );
   }
+}
+
+void _dialogExclusaoImovel(context, referencia){
+
+  showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: new Text("Alerta"),
+          content: new Text("Deseja deletar o registro?"),
+          actions: <Widget>[
+            new FlatButton(
+              child: new Text("Confirmar"),
+              onPressed: () => deleteData(context, referencia),
+            ),
+            new FlatButton(
+              child: new Text("Cancelar"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      }
+  );
+}
+
+deleteData(context, referencia) {
+  Firestore.instance
+      .collection('imovel')
+      .document(referencia)
+      .delete()
+      .catchError((e) {
+    print(e);
+  });
+
+  Navigator.of(context).pop();
 }
 
 class Record {
@@ -91,7 +132,7 @@ class Record {
   final DocumentReference reference;
 
   Record.fromMap(Map<String, dynamic> map, {this.reference})
-      : assert(map['logradouro'] != null),
+     : /* assert(map['logradouro'] != null),
         assert(map['bairro'] != null),
         assert(map['quartos'] != null),
         assert(map['banheiros'] != null),
@@ -99,7 +140,7 @@ class Record {
         assert(map['garagem'] != null),
         assert(map['tipo'] != null),
         assert(map['valor'] != null),
-        assert(map['iptu'] != null),
+        assert(map['iptu'] != null),*/
         logradouro = map['logradouro'],
         bairro = map['bairro'],
         quartos = map['quartos'],
